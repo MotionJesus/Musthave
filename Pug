@@ -1,0 +1,65 @@
+<?php
+ 
+include '/system/config_bd.php';
+ 
+class pagination_start {
+public $page;
+public $CountListPage=10; 
+public $sql="SELECT * FROM `news`";
+public $start;
+public $limit;
+public $ires;
+ 
+public function page_settings() {
+$this->page_get();
+$this->start=($this->page-1)*$this->CountListPage; 
+$this->limit=" LIMIT $this->start,$this->CountListPage";
+$this->ires=mysql_query($this->sql.$this->limit);
+}
+ 
+public function page_get() {
+if(empty($_GET['page'])){$this->page=1;} 
+else {$this->page=$_GET['page'];} 
+}
+ 
+}
+class pagination_end extends pagination_start{
+public $link_interval;
+public $i;
+public $sp; 
+public function pagination($class_all,$class_once) { 
+$link_page = ''; 
+$this->page_get(); 
+$count=mysql_num_rows(mysql_query($this->sql)); 
+if($count>$this->CountListPage){ 
+$CountList=ceil($count/$this->CountListPage); 
+if($this->page > 3 && $CountList > 5){echo '<span class="'.$class_all.'"><a href="?page=1'.$this->link_interval.'">1</a></span><span class="'.$class_all.'">...</span>';} 
+if($this->page > 3 && $CountList > 5){$this->sp=$this->page-2;}else{$this->sp=1;} 
+if($this->page > $CountList-3 && $CountList > 5){$this->sp=$CountList-4; } 
+if($CountList>5)$cpc=5;else $cpc=$CountList; 
+for($this->i=$this->sp;$this->i<$this->sp+$cpc;$this->i++){ 
+if($this->i == $this->page){  printf ('<span class="'.$class_once.'">%s</span>',$this->i); } 
+else{ $suit=$this->link_interval.$this->i;  
+$links_cent = '<span class="'.$class_all.'"><a href="?page='.$suit.'">'.$this->i.'</a></span>';
+echo $links_cent;  } } 
+$suit=$this->link_interval."?page=".$CountList.""; 
+if($this->page<=$CountList-3 and $CountList>5){echo '<span class="'.$class_all.'">...</span>  <span class="'.$class_all.'"><a href="'.$suit.'">'.$CountList.'</a></span> ';} }
+}
+}
+$CountListPage = 5;   // Сколько объектов отображать на странице # по умолчанию 10
+$sql="SELECT * FROM `news` ";  // SQL запрос # по умолчанию "SELECT * FROM `news`"
+$class_all='page_all'; // Css класс всех страниц кроме текущей
+$class_once='class_once'; // Css класс всех страниц кроме текущей
+$pagination = new pagination_start();
+$pagination->CountListPage = $CountListPage;
+$pagination->sql = $sql;
+$pagination->page_settings();
+while($ires_result=mysql_fetch_array($pagination->ires))
+{
+echo $ires_result['id']."<br/>";
+}
+$pagination_end = new pagination_end();
+$pagination_end->CountListPage = $CountListPage;
+$pagination_end->sql = $sql;
+$pagination_end->pagination($class_all,$class_once); 
+?>
